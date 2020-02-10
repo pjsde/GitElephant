@@ -519,7 +519,38 @@ class Repository
         return null;
     }
 
-    /**
+	/**
+	 * List all branches from the remote
+	 *
+	 * @param string $remote remote to fetch from
+	 *
+	 * @return array
+	 *@throws \InvalidArgumentException
+	 * @throws \Symfony\Component\Process\Exception\RuntimeException
+	 * @throws \RuntimeException
+	 */
+	public function getRemoteBranches($remote = null)
+	{
+		$allBranches = $this->getBranches(true, true);
+		$realBranches = array_filter(
+			$allBranches,
+			function (string $branch) use ($remote) {
+				return preg_match('/^remotes(.+)$/', $branch)
+					&& !preg_match('/^(.+)(HEAD)(.*?)$/', $branch)
+					&& ($remote ? preg_match('/^remotes\/'.$remote.'\/(.+)$/', $branch):true);
+			}
+		);
+
+		$branches = [];
+		foreach ($realBranches as $realBranch) {
+			$branches[] = str_replace('remotes/', '', $realBranch);
+		}
+
+		return $branches;
+	}
+
+
+	/**
      * Checkout all branches from the remote and make them local
      *
      * @param string $remote remote to fetch from
@@ -552,7 +583,21 @@ class Repository
         return $this;
     }
 
-    /**
+	/**
+	 * Checkout a branch from the remote and make them local
+	 *
+	 * @param        $branch
+	 *
+	 * @return Repository
+	 */
+	public function checkoutRemoteBranch($branch)
+	{
+		$this->checkout( $branch);
+
+		return $this;
+	}
+
+	/**
      * Merge a Branch in the current checked out branch
      *
      * @param Objects\Branch $branch  The branch to merge in the current checked out branch

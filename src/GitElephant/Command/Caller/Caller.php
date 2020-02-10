@@ -104,7 +104,7 @@ class Caller extends AbstractCaller
         $this->rawOutput = $process->getOutput();
 
         // rtrim values
-        $values = array_map('rtrim', explode(PHP_EOL, $process->getOutput()));
+        $values = array_map('rtrim', preg_split('/\r\n|\r|\n/', $process->getOutput()));
         $this->outputLines = $values;
 
         return $this;
